@@ -11,4 +11,28 @@ dependencies {
   implementation 'org.mongodb:mongodb-driver-reactivestreams:5.0.0'
   implementation 'org.slf4j:slf4j-jdk14:2.0.9'
   implementation 'ch.qos.logback:logback-classic:1.2.6'
+
+  // --- Testing (FASE 0) ---
+  // Unit: JUnit 5 + Mockito. El BOM alinea engine/api/params.
+  testImplementation platform('org.junit:junit-bom:5.10.2')
+  testImplementation 'org.junit.jupiter:junit-jupiter'
+  testRuntimeOnly   'org.junit.platform:junit-platform-launcher'   // Gradle 8.6 lo exige explícito
+  testImplementation 'org.mockito:mockito-core:5.11.0'
+  testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
+
+  // Integración headless: HeadlessApplication + GL mockeado para probar Actors/Stage sin ventana.
+  testImplementation "com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion"
+  testRuntimeOnly   "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+
+  // Integración Mongo (Docker) via Testcontainers. Gate por @Tag("integration").
+  testImplementation platform('org.testcontainers:testcontainers-bom:1.19.7')
+  testImplementation 'org.testcontainers:junit-jupiter'
+  testImplementation 'org.testcontainers:mongodb'
+}
+
+test {
+  useJUnitPlatform()
+  testLogging { events 'passed', 'skipped', 'failed' }
+  // JDK 21 + Mockito/ByteBuddy: evita el warning de carga dinámica de agente.
+  jvmArgs '-XX:+EnableDynamicAgentLoading'
 }

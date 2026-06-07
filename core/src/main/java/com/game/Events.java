@@ -2,6 +2,8 @@ package com.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
+import com.game.logic.HitZone;
+import com.game.logic.ScoreCalculator;
 import java.util.ArrayList;
 import static com.badlogic.gdx.graphics.Color.WHITE;
 import static com.badlogic.gdx.graphics.Color.YELLOW;
@@ -171,25 +173,21 @@ public class Events {
 
             stage.addActor(missLabel);
             labelSans.remove();
-            if (isCollided(barAttack,boxAttack.getHitBoxCenter())) {
-                System.out.println("Centred at: " + POSITION_BAR_NORMALIZED);
-                if (POSITION_BAR_NORMALIZED == 273) {
-                    score += 200;
-                }
-                score += 300;
+            // Zona de impacto extraída a HitZone; el puntaje lo calcula ScoreCalculator
+            // (lógica pura, testeable). Comportamiento idéntico al original. (FASE 0)
+            HitZone zone;
+            if (isCollided(barAttack, boxAttack.getHitBoxCenter())) {
+                zone = HitZone.CENTER;
             } else if (isCollided(barAttack, boxAttack.getHitBoxGreenLeft()) || isCollided(barAttack, boxAttack.getHitBoxGreenRight())) {
-                System.out.println("Green Zone");
-                score += 150;
+                zone = HitZone.GREEN;
             } else if (isCollided(barAttack, boxAttack.getHitBoxYellowLeft()) || isCollided(barAttack, boxAttack.getHitBoxYellowRight())) {
-                System.out.println("Yellow Zone");
-                score += 50;
+                zone = HitZone.YELLOW;
             } else if (isCollided(barAttack, boxAttack.getHitBoxRedLeft()) || isCollided(barAttack, boxAttack.getHitBoxRedRight())) {
-                System.out.println("Red Zone");
-                score += 15;
+                zone = HitZone.RED;
+            } else {
+                zone = HitZone.MISS;
             }
-
-
-            score += act * 100;
+            score += ScoreCalculator.attackScore(zone, act, POSITION_BAR_NORMALIZED);
             disposeResourceAnimationAttack();
             act = !isSparing ? act + 1 : 8;
 

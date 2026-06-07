@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.logging.Level;
-import com.mongodb.client.model.Sorts;
+import com.game.logic.DurationFormatter;
+import com.game.logic.RankingSort;
+import com.game.logic.StatsCalculator;
 import org.bson.Document;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -37,37 +39,31 @@ public class DataBase {
     }
 
     public static void updatePlayerStats(String name, int score, Duration durationPlayed, boolean isWon) {
-        long secondsSum = durationPlayed.getSeconds();
         createConnection();
         Document query = collection.find(eq("name", name)).first();
-        String format = String.format("%02d:%02d:%02d", secondsSum / 3600, (secondsSum % 3600) / 60, secondsSum % 60);
+        // Formato y cálculos extraídos a clases puras (DurationFormatter/StatsCalculator).
+        // Comportamiento idéntico al original. (FASE 0)
+        String format = DurationFormatter.format(durationPlayed);
 
         if (query == null) {
-            Document document = (isWon) ?
-                new Document("name", name)
+            Document document = new Document("name", name)
                     .append("amount played", 1)
-                    .append("amount won", 1)
+                    .append("amount won", isWon ? 1 : 0)
                     .append("score", score)
-                    .append("time played" , format)
-                    .append("win rate", 100.0) :
-                new Document("name", name)
-                    .append("amount played", 1)
-                    .append("amount won", 0)
-                    .append("score", score)
-                    .append("time played" , format)
-                    .append("win rate", 0.0);
+                    .append("time played", format)
+                    .append("win rate", StatsCalculator.firstGameWinRate(isWon));
             collection.insertOne(document);
         } else {
             int actualScore = query.getInteger("score");
-            int actualAmountWon = isWon? query.getInteger("amount won") + 1 : query.getInteger("amount won");
+            int actualAmountWon = StatsCalculator.amountWonOnUpdate(query.getInteger("amount won"), isWon);
 
             int amountPlayed = query.getInteger("amount played") + 1;
             Bson update = combine(
                 inc("amount played", 1),
-                score > actualScore ? set("score", score) : set("score", actualScore),
+                set("score", StatsCalculator.bestScore(actualScore, score)),
                 set("amount won", actualAmountWon),
                 set("time played", format),
-                set("win rate",  Math.round((float) actualAmountWon / amountPlayed * 100 * 100.0) / 100.0  )
+                set("win rate", StatsCalculator.winRateOnUpdate(actualAmountWon, amountPlayed))
             );
             collection.findOneAndUpdate(
                 eq("name", name),
@@ -83,13 +79,13 @@ public class DataBase {
 
         List<Document> topTenScores;
 
+        // Orden extraído a RankingSort. Comportamiento idéntico al original: el código
+        // encadenaba 4 .sort(), de los cuales el driver SOLO aplica el último
+        // (descending("score")), perdiendo los desempates. Se preserva ese comportamiento
+        // (currentBuggyOrder); el orden multi-clave correcto vive en RankingSort.INTENDED_ORDER
+        // y se adoptará en FASE 2. Ver docs/ARQUITECTURA-AUDITORIA.md (DA-2). (FASE 0)
         topTenScores = collection.find()
-
-            .sort(Sorts.ascending("time played"))
-            .sort(Sorts.descending("amount played"))
-            .sort(Sorts.descending("win rate"))
-            .sort(Sorts.descending("score"))
-
+            .sort(RankingSort.currentBuggyOrder())
             .limit(10)
             .into(new ArrayList<>());
         return topTenScores;
