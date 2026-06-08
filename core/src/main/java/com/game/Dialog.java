@@ -62,8 +62,12 @@ public class Dialog extends Actor {
             bubbleDialog.setPosition(sans.getHead().getX() + sans.getHead().getWidth() + 4 * VH_WIDTH, sans.getHead().getY() -  16 * VH_HEIGHT);
             bubbleDialog.setScale(4f, 3f);
 
-            labelDialog.setPosition(sans.getHead().getX() + sans.getHead().getWidth() + 10 * VH_WIDTH, bubbleDialog.getY() + 12 * VH_HEIGHT);
+            // El texto se ancla cerca del borde SUPERIOR del bocadillo y crece hacia abajo
+            // (wrap activo). Se baja el inicio para que las 3 líneas no se salgan por arriba.
+            float bubbleTop = bubbleDialog.getY() + bubbleDialog.getRegionHeight() * bubbleDialog.getScaleY();
+            labelDialog.setPosition(sans.getHead().getX() + sans.getHead().getWidth() + 10 * VH_WIDTH, bubbleTop - 5 * VH_HEIGHT);
             labelDialog.setWidth(bubbleDialog.getRegionWidth() * 3.5f - 6*VH_WIDTH);
+            labelDialog.setAlignment(com.badlogic.gdx.utils.Align.topLeft);
         }
         batch.draw(bubbleDialog, bubbleDialog.getX() , bubbleDialog.getY(), bubbleDialog.getRegionWidth() * bubbleDialog.getScaleX(), bubbleDialog.getRegionHeight() * bubbleDialog.getScaleY());
     }

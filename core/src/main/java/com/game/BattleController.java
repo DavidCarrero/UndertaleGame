@@ -283,7 +283,8 @@ public class BattleController {
             if (bonesLeft.isEmpty()) {
                 bonesLeft.add(new ObjetsItems(boxHeart.getX()/2 , Gdx.graphics.getHeight(), true));
                 isCanAddLeft = false;
-                gasterBlasterAttackSound();
+                // El sonido de disparo ya NO se reproduce aquí (al aparecer), sino dentro de
+                // gasterBlasterAttack en el instante en que el rayo realmente sale.
             }
             if (bonesRight.isEmpty()) {
                 bonesRight.add(new ObjetsItems(boxHeart.getX() + boxHeart.getWidth() + boxHeart.getX()/2, Gdx.graphics.getHeight(), false));

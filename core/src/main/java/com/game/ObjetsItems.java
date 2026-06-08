@@ -22,6 +22,7 @@ public class ObjetsItems extends Actor {
     private Direction direction;
 
     private boolean startFadeOut = false;
+    private boolean hasFiredSound = false; // el sonido de disparo suena UNA vez, al salir el rayo
 
     private float opacity = 1f, angle = 0;
 
@@ -156,6 +157,13 @@ public class ObjetsItems extends Actor {
             startFadeOut = true;
         }
 
+        // El sonido de disparo se reproduce justo cuando el rayo aparece (1ª vez), sincronizado
+        // con el frame. Antes sonaba al crear el blaster, mucho antes de disparar.
+        if (!hasFiredSound) {
+            hasFiredSound = true;
+            gasterBlasterAttackSound();
+        }
+
         if (startFadeOut && opacity > 0) {
             opacity -= Gdx.graphics.getDeltaTime() / 2;
             if (opacity < 0) {
@@ -193,7 +201,9 @@ public class ObjetsItems extends Actor {
         }
         if (getY() == yDestinyGasterBlaster) {
             seconds += Gdx.graphics.getDeltaTime();
-            if ( seconds < 2 && seconds > 0.4) {
+            // Tras bajar (rápido), el Gaster Blaster espera ~0.5 s quieto antes de cargar/disparar.
+            // Carga entre 0.5 s y 2 s; dispara a partir de 2 s.
+            if ( seconds < 2 && seconds > 0.5) {
                 if (index < valuesX.length - 1) {
                     index ++;
                 }

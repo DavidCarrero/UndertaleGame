@@ -168,6 +168,25 @@ public class Events {
             createHit();
             canSelect = false;
         }
+
+        // BUG FIX: si la barra llega al extremo sin que golpees, se auto-removía del stage y
+        // el turno quedaba en limbo (boxAttack visible, nada lo cerraba). Detectamos ese caso
+        // (boxAttack presente, barra ya fuera del stage y sin animación de golpe activa) y lo
+        // tratamos como FALLO: se cierra el turno sin sumar puntaje.
+        if (boxAttack != null && boxAttack.getStage() != null
+                && barAttack != null && barAttack.getStage() == null
+                && !sans.isCanAnimateEvadeAttack() && !sans.isAnimationEvadeFinished()) {
+            disposeResourceAnimationAttack();
+            if (labelSans != null) {
+                labelSans.remove();
+            }
+            act = !isSparing ? act + 1 : 8;
+            heart.isTurn = false;
+            heart.setPositionFight();
+            sans.setIsAnimationVoidFinishedFalse();
+            canSelect = false;
+            return;
+        }
         if (barAttack != null && barAttack.getStage() != null && sans.isAnimationEvadeFinished()) {
             float POSITION_BAR_NORMALIZED = barAttack.getX() + barAttack.getWidth()/2 - boxAttack.getX() * VH_WIDTH * 0.16f;
 
