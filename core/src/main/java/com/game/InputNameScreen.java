@@ -31,7 +31,14 @@ public class InputNameScreen implements Screen {
         TextField.TextFieldStyle textFieldStyle = createTextFieldStyle();
         Pixmap cursorPixmap = createCursor((int) textFieldStyle.font.getLineHeight());
         this.cursorTexture = new Texture(cursorPixmap);
-        textFieldStyle.cursor = new TextureRegionDrawable(new TextureRegion(this.cursorTexture));
+        // Filtro Nearest: el cursor no se difumina/engrosa al escalarse.
+        this.cursorTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        TextureRegionDrawable cursorDrawable = new TextureRegionDrawable(new TextureRegion(this.cursorTexture));
+        // Tamaño FIJO del cursor: Scene2D lo dimensiona con estos valores, no con la
+        // altura de la fuente. Evita que crezca de grosor entre partidas.
+        cursorDrawable.setMinWidth(2);
+        cursorDrawable.setMinHeight(28);
+        textFieldStyle.cursor = cursorDrawable;
         cursorPixmap.dispose();
 
         Label inputName = new Label("Input your name: ", getLabelStyle(30));

@@ -32,6 +32,10 @@ public class FabricElements {
     public static TextField.TextFieldStyle createTextFieldStyle() {
         TextField.TextFieldStyle textFieldStyle = new TextField.TextFieldStyle();
         textFieldStyle.font = getFont(30);
+        // Filtro Nearest: evita que el glifo del cursor se difumine/engrose al escalarse.
+        textFieldStyle.font.getRegion().getTexture()
+                .setFilter(com.badlogic.gdx.graphics.Texture.TextureFilter.Nearest,
+                           com.badlogic.gdx.graphics.Texture.TextureFilter.Nearest);
         textFieldStyle.fontColor = Color.WHITE;
         return textFieldStyle;
     }
@@ -46,7 +50,8 @@ public class FabricElements {
     public static TextField createTextField(float inputNameWidth, TextField.TextFieldStyle textFieldStyle) {
         TextField nameField = new TextField("", textFieldStyle);
         nameField.setPosition((float) Gdx.graphics.getWidth() /2 - inputNameWidth/2, 350);
-        nameField.setSize(inputNameWidth, createTextFieldStyle().font.getLineHeight() );
+        // Altura tomada del estilo que ya recibimos (no generar otra fuente con getFont).
+        nameField.setSize(inputNameWidth, textFieldStyle.font.getLineHeight());
         return nameField;
     }
 

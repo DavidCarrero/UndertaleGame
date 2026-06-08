@@ -44,8 +44,15 @@ public class Sans extends Actor {
     private static final float WON_FRAME_DURATION = 1.2f;
     private static final float HAND_SPEED = 20f; // stateTime * HAND_SPEED al consultar el frame de mano
 
-    // Corrección horizontal para centrar la cabeza sobre el cuerpo (estaba corrida a la derecha).
-    private static final float HEAD_X_CENTER_OFFSET = VH_WIDTH * 0.35f;
+    // Corrección horizontal para centrar la cabeza sobre el cuerpo.
+    // Calculado a partir de los píxeles reales del spritesheet:
+    //   body w=52 (origin centrado en 26), head w=30 (origin en 15).
+    //   Para alinear centros: posHeadX = body.getX() + (26 - 15) = body.getX() + 11.
+    //   La fórmula base aporta body.getX() + ~25.72px, así que sobran ~14.72px ≈ 0.767*VH_WIDTH.
+    private static final float HEAD_X_CENTER_OFFSET = VH_WIDTH * 0.767f;
+    // Eleva la cabeza para que no quede hundida en el cuello/cuerpo, sin pasarse
+    // (2.0 dejaba un hueco; 0.8 la hundía). 1.0*VH_HEIGHT ≈ 11px es el punto medio.
+    private static final float HEAD_Y_RAISE = VH_HEIGHT * 1.0f;
 
     public Sans() {
         image = new Sprite(new Texture(Gdx.files.internal("images/SansSprite.png")));
@@ -269,14 +276,15 @@ public class Sans extends Actor {
             float pendulumSwingX = (float) (2f * Math.sin(10f * stateTime / 2)) - 1.5f;
             float movementYBody = (float) (1.5f * Math.sin(20f * stateTime)) - 1.5f;
             if (act != 8) {
-                if (isAnimationHeadFinished()) {
-                    batch.draw(head, body.getX() + VH_WIDTH * 0.3f * getScaleX() - pendulumSwingXBody + 1 * getScaleY() - HEAD_X_CENTER_OFFSET, -0.5f * VH_HEIGHT * getScaleY() + body.getY() + (float) body.getRegionHeight() / 2 + head.getRegionHeight() - movementY, head.getOriginX(), 0, head.getRegionWidth(), head.getRegionHeight(), getScaleX(), getScaleY(), 0);
-                } else {
-                    TextureRegion currentFrame = animationHead.getKeyFrame(timeHead);
-                    batch.draw(currentFrame, body.getX() + VH_WIDTH * 0.3f * getScaleX() - pendulumSwingXBody + 1 * getScaleY() - HEAD_X_CENTER_OFFSET, -0.5f * VH_HEIGHT * getScaleY() + body.getY() + (float) body.getRegionHeight() / 2 + head.getRegionHeight() - movementY, head.getOriginX(), 0, currentFrame.getRegionWidth(), currentFrame.getRegionHeight(), getScaleX(), getScaleY(), 0);
-                }
+                // Cuerpo y piernas primero; la cabeza se dibuja al final para quedar DELANTE.
                 batch.draw(body, body.getX() - pendulumSwingX, body.getY() - (VH_HEIGHT * getScaleY() * 0.3f) - movementYBody, body.getOriginX(), body.getOriginY(), body.getRegionWidth(), body.getRegionHeight(), getScaleX(), getScaleY(), 0);
                 batch.draw(legs, legs.getX() + (VH_WIDTH * 1.9f / getScaleX()), legs.getY() + VH_HEIGHT * 0.2f, legs.getOriginX(), legs.getOriginY(), legs.getRegionWidth(), legs.getRegionHeight(), getScaleX(), getScaleY(), 0);
+                if (isAnimationHeadFinished()) {
+                    batch.draw(head, body.getX() + VH_WIDTH * 0.3f * getScaleX() - pendulumSwingXBody + 1 * getScaleY() - HEAD_X_CENTER_OFFSET, HEAD_Y_RAISE - 0.5f * VH_HEIGHT * getScaleY() + body.getY() + (float) body.getRegionHeight() / 2 + head.getRegionHeight() - movementY, head.getOriginX(), 0, head.getRegionWidth(), head.getRegionHeight(), getScaleX(), getScaleY(), 0);
+                } else {
+                    TextureRegion currentFrame = animationHead.getKeyFrame(timeHead);
+                    batch.draw(currentFrame, body.getX() + VH_WIDTH * 0.3f * getScaleX() - pendulumSwingXBody + 1 * getScaleY() - HEAD_X_CENTER_OFFSET, HEAD_Y_RAISE - 0.5f * VH_HEIGHT * getScaleY() + body.getY() + (float) body.getRegionHeight() / 2 + head.getRegionHeight() - movementY, head.getOriginX(), 0, currentFrame.getRegionWidth(), currentFrame.getRegionHeight(), getScaleX(), getScaleY(), 0);
+                }
             } else {
                 if (animationBody.getKeyFrameIndex(timeHead) == 6) {
                     isAnimationWonDone = true;
@@ -289,38 +297,34 @@ public class Sans extends Actor {
                 batch.draw(currentLegs, legs.getX() + offset, legs.getY() + VH_HEIGHT * 0.2f, legs.getOriginX(), legs.getOriginY(), currentLegs.getRegionWidth(), currentLegs.getRegionHeight(), getScaleX(), getScaleY(), 0);
             }
         } else {
-            float deltaY, deltaX;
             TextureRegion currentFrame = animation.getKeyFrame(stateTime * HAND_SPEED);
 
-            if (currentFrame.getRegionX() == 9 && currentFrame.getRegionY() == 297) {
-                deltaY = -0.7f * VH_HEIGHT * getScaleY();
-            } else if (currentFrame.getRegionX() == 78 && currentFrame.getRegionY() == 297) {
-                deltaY = -0.8f * VH_HEIGHT * getScaleY();
-            } else if (currentFrame.getRegionX() == 147 && currentFrame.getRegionY() == 297) {
-                deltaY = -0.5f * VH_HEIGHT * getScaleY();
-            } else if (currentFrame.getRegionX() == 285 || currentFrame.getRegionX() == 354 && currentFrame.getRegionY() == 297) {
-                deltaY = -0.6f * VH_HEIGHT * getScaleY();
-            } else if (currentFrame.getRegionX() == 216 && currentFrame.getRegionY() == 297) {
-                deltaY = 0 * VH_HEIGHT * getScaleY();
-            } else {
-                deltaY = -0.5f * VH_HEIGHT * getScaleY();
-            }
-
-            // La animación de brazo HORIZONTAL (regiones Y==390: right/left hand) NO debe
-            // arrastrar la cabeza. Solo las animaciones de brazo VERTICAL (Y==297) ajustan
-            // la altura de la cabeza con deltaY; en las horizontales la cabeza queda fija
-            // en su posición de reposo.
-            boolean isHorizontalHand = currentFrame.getRegionY() == 390;
-            if (isHorizontalHand) {
-                deltaX = 0;
-                deltaY = -0.5f * VH_HEIGHT * getScaleY();
-            } else {
-                deltaX = 0;
-            }
-            // Cabeza en la MISMA posición que en reposo (deltaX = 0, misma fórmula Y).
-            batch.draw(head, body.getX() + VH_WIDTH * 0.3f * getScaleX() - pendulumSwingXBody + deltaX + 1 * getScaleY() - HEAD_X_CENTER_OFFSET, deltaY + body.getY() + (float) body.getRegionHeight() / 2 + head.getRegionHeight() - movementY, head.getOriginX(), 0, head.getRegionWidth(), head.getRegionHeight(), getScaleX(), getScaleY(), 0);
-
+            // El frame de brazo se dibuja primero; la cabeza al final (DELANTE).
             batch.draw(currentFrame, body.getX() + VH_WIDTH * 0.01f, body.getY() - VH_HEIGHT, getOriginX(), getOriginY(), currentFrame.getRegionWidth(), currentFrame.getRegionHeight(), getScaleX(), getScaleY(), 0);
+
+            // La cabeza queda SIEMPRE en su posición de reposo (X e Y idénticas). Sans mueve
+            // solo el brazo; la cabeza no se desplaza. Robusto: no depende del origin desplazado
+            // del frame de brazo (que antes la hacía volar arriba-derecha).
+            // El brazo VERTICAL (Y==297) sí baja un poco la cabeza con extraVerticalDip.
+            float headX = body.getX() + VH_WIDTH * 0.3f * getScaleX() - pendulumSwingXBody + 1 * getScaleY() - HEAD_X_CENTER_OFFSET;
+            float headY = HEAD_Y_RAISE - 0.5f * VH_HEIGHT * getScaleY() + body.getY()
+                    + (float) body.getRegionHeight() / 2 + head.getRegionHeight() - movementY;
+
+            if (currentFrame.getRegionY() == 297) {
+                float extraVerticalDip = 0;
+                if (currentFrame.getRegionX() == 9) {
+                    extraVerticalDip = -0.2f * VH_HEIGHT * getScaleY();
+                } else if (currentFrame.getRegionX() == 78) {
+                    extraVerticalDip = -0.3f * VH_HEIGHT * getScaleY();
+                } else if (currentFrame.getRegionX() == 285 || currentFrame.getRegionX() == 354) {
+                    extraVerticalDip = -0.1f * VH_HEIGHT * getScaleY();
+                } else if (currentFrame.getRegionX() == 216) {
+                    extraVerticalDip = 0.5f * VH_HEIGHT * getScaleY();
+                }
+                headY += extraVerticalDip;
+            }
+
+            batch.draw(head, headX, headY, head.getOriginX(), 0, head.getRegionWidth(), head.getRegionHeight(), getScaleX(), getScaleY(), 0);
         }
     }
 
