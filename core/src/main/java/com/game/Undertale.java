@@ -43,6 +43,9 @@ public class Undertale extends Game {
     }
 
     public static BitmapFont getFont(int size) {
+        if (generator != null) {
+            generator.dispose();
+        }
         generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/determination.otf"));
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
         parameter.size = size;

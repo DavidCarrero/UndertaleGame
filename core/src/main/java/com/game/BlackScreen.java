@@ -57,7 +57,7 @@ public class BlackScreen implements Screen {
             timeHead = 0;
             i = 0;
             updatePlayerStats(game.getName(), score, Duration.between(game.getTimePlayed(), LocalTime.now()), false);
-            act = 4; score = 0;
+            act = 1; score = 0;
             isSparing = false;
             game.showGameOverScreen(heart);
         }
@@ -67,7 +67,7 @@ public class BlackScreen implements Screen {
             deleteBones();
             isSparing = false;
             updatePlayerStats(game.getName(), score, Duration.between(game.getTimePlayed(), LocalTime.now()), true);
-            act = 4;
+            act = 1;
             score = 0;
             game.showMainMenuScreen();
     }

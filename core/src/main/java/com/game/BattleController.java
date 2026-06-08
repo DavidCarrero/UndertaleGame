@@ -16,7 +16,7 @@ import static com.game.Undertale.batch;
 import static com.game.Undertale.stage;
 
 public class BattleController {
-    static int act = 4, nextAttack = 0;
+    static int act = 1, nextAttack = 0;
     static boolean canAdd = true, isCanAddLeft = true, isCanAddRight = true;
 
     private static boolean isOptionAvailable = true;

@@ -48,6 +48,7 @@ public class InputNameScreen implements Screen {
     public void show() {
         createButtons();
         Gdx.input.setInputProcessor(stage);
+        stage.setKeyboardFocus(nameField);
     }
 
     @Override

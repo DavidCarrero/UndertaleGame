@@ -21,7 +21,10 @@ import static com.game.Undertale.stage;
 
 public class FabricElements {
     public static Pixmap createCursor(int lineHeight) {
-        Pixmap cursorPixmap = new Pixmap(1, lineHeight - 10, Pixmap.Format.RGBA8888);
+        // El cursor debe caber dentro del marco del campo (43px de alto).
+        // Lo limitamos a ~30px de alto y 2px de ancho para que no se salga ni quede invisible.
+        int cursorHeight = Math.min(lineHeight - 10, 30);
+        Pixmap cursorPixmap = new Pixmap(2, cursorHeight, Pixmap.Format.RGBA8888);
         cursorPixmap.setColor(Color.WHITE);
         cursorPixmap.fill();
         return cursorPixmap;
