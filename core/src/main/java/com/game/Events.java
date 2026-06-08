@@ -180,7 +180,7 @@ public class Events {
             if (labelSans != null) {
                 labelSans.remove();
             }
-            act = !isSparing ? act + 1 : 8;
+            act = !isSparing ? BattleController.nextPhaseAfter(act) : 8;
             heart.isTurn = false;
             heart.setPositionFight();
             sans.setIsAnimationVoidFinishedFalse();
@@ -208,7 +208,7 @@ public class Events {
             }
             score += ScoreCalculator.attackScore(zone, act, POSITION_BAR_NORMALIZED);
             disposeResourceAnimationAttack();
-            act = !isSparing ? act + 1 : 8;
+            act = !isSparing ? BattleController.nextPhaseAfter(act) : 8;
 
             heart.isTurn = false;
             heart.setPositionFight();

@@ -23,6 +23,24 @@ public class BattleController {
 
     private static Dialog dialog;
 
+    // Nivel nuevo (alma roja + Gaster Blasters rotatorios) como AttackPhase.
+    // Es el act 9, encadenado entre el act 5 y el mercy mediante nextPhaseAfter().
+    private static com.game.phase.AttackPhase redSoulGasterPhase;
+    private static boolean redSoulGasterEntered = false;
+
+    /**
+     * Tabla de transición entre actos. Reemplaza el "act + 1" genérico para poder
+     * insertar fases sin renumerar. Devuelve el siguiente acto tras completar {@code current}.
+     * (Base del patrón State: el orden de la pelea queda declarado en un solo sitio.)
+     */
+    public static int nextPhaseAfter(int current) {
+        return switch (current) {
+            case 5 -> 9;   // tras el gauntlet 2 va el nivel nuevo de Gaster rotatorios
+            case 9 -> 6;   // tras el nivel nuevo va la secuencia de mercy
+            default -> current + 1;
+        };
+    }
+
     static ArrayList<ObjetsItems> platforms = new ArrayList<>();
 
     static ObjetsItems platformThatIsOver;
@@ -836,6 +854,24 @@ public class BattleController {
                     timeHead++;
                 }
 
+            }
+            case 9 -> {
+                // NIVEL NUEVO: alma roja + Gaster Blasters rotatorios (AttackPhase).
+                heart.setOption(1);
+                if (!redSoulGasterEntered) {
+                    if (redSoulGasterPhase == null) {
+                        redSoulGasterPhase = new com.game.phase.RedSoulGasterPhase();
+                    }
+                    redSoulGasterPhase.onEnter();
+                    redSoulGasterEntered = true;
+                }
+                drawBlackGround();
+                redSoulGasterPhase.update(Gdx.graphics.getDeltaTime());
+                if (redSoulGasterPhase.isFinished()) {
+                    redSoulGasterPhase.onExit();
+                    redSoulGasterEntered = false;
+                    setConfigTurnPlayer();
+                }
             }
 
 
