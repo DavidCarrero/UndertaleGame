@@ -157,17 +157,32 @@ public class RotatingGasterBlaster {
             return;
         }
         float halfThick = BEAM_HALF_THICKNESS * beamHeightFactor();
-        Vector2 dir = new Vector2(MathUtils.cosDeg(fireAngle), MathUtils.sinDeg(fireAngle));
-        float hx = heart.getHitBox().x;
-        float hy = heart.getHitBox().y;
-        Vector2 toHeart = new Vector2(hx - x, hy - y);
+        float fx = MathUtils.cosDeg(fireAngle);
+        float fy = MathUtils.sinDeg(fireAngle);
+        // El EJE de colisión debe coincidir con el RAYO VISIBLE: mismo origen que en draw()
+        // (la boca, con forward/side), no el centro del sprite. Antes usaba (x,y) y golpeaba
+        // donde no había rayo.
+        float px = -fy;
+        float py = fx;
+        float originX = x + fx * mouthForward() + px * mouthSide();
+        float originY = y + fy * mouthForward() + py * mouthSide();
+        // Centro REAL del alma: el Circle tiene su (x,y) en la esquina del sprite, así que se
+        // suma medio sprite para obtener el centro.
+        float hr = heart.getHitBox().radius;
+        float hx = heart.getHitBox().x + hr / 2f;
+        float hy = heart.getHitBox().y + hr / 2f;
+        Vector2 dir = new Vector2(fx, fy);
+        Vector2 toHeart = new Vector2(hx - originX, hy - originY);
         float along = toHeart.dot(dir);
         if (along < 0) {
-            return;
+            return; // el alma está detrás de la boca, fuera del rayo
         }
-        Vector2 closest = new Vector2(dir).scl(along).add(x, y);
+        Vector2 closest = new Vector2(dir).scl(along).add(originX, originY);
         float perpDist = closest.dst(hx, hy);
-        if (perpDist <= halfThick + heart.getHitBox().radius) {
+        // Radio efectivo del alma reducido (el hitBox de 15px es generoso): exige que el alma
+        // esté realmente dentro del rayo para hacer daño.
+        float soulRadius = hr * 0.4f;
+        if (perpDist <= halfThick + soulRadius) {
             soulDamaged();
             heart.setHp(Math.max(heart.getHp() - 1.0f, 0));
         }
