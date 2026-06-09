@@ -27,6 +27,8 @@ public class BattleController {
     // Es el act 9, encadenado entre el act 5 y el mercy mediante nextPhaseAfter().
     private static com.game.phase.AttackPhase redSoulGasterPhase;
     private static boolean redSoulGasterEntered = false;
+    private static com.game.phase.AttackPhase blueOrangeBonesPhase;
+    private static boolean blueOrangeBonesEntered = false;
 
     /**
      * Tabla de transición entre actos. Reemplaza el "act + 1" genérico para poder
@@ -35,8 +37,9 @@ public class BattleController {
      */
     public static int nextPhaseAfter(int current) {
         return switch (current) {
-            case 5 -> 9;   // tras el gauntlet 2 va el nivel nuevo de Gaster rotatorios
-            case 9 -> 6;   // tras el nivel nuevo va la secuencia de mercy
+            case 5 -> 9;    // tras el gauntlet 2 va el nivel de Gaster rotatorios
+            case 9 -> 10;   // tras el Gaster rotatorio van los huesos azul/naranja
+            case 10 -> 6;   // tras los huesos de color va la secuencia de mercy
             default -> current + 1;
         };
     }
@@ -870,6 +873,24 @@ public class BattleController {
                 if (redSoulGasterPhase.isFinished()) {
                     redSoulGasterPhase.onExit();
                     redSoulGasterEntered = false;
+                    setConfigTurnPlayer();
+                }
+            }
+            case 10 -> {
+                // NIVEL: huesos azul/naranja (AttackPhase).
+                heart.setOption(1);
+                if (!blueOrangeBonesEntered) {
+                    if (blueOrangeBonesPhase == null) {
+                        blueOrangeBonesPhase = new com.game.phase.BlueOrangeBonesPhase();
+                    }
+                    blueOrangeBonesPhase.onEnter();
+                    blueOrangeBonesEntered = true;
+                }
+                drawBlackGround();
+                blueOrangeBonesPhase.update(Gdx.graphics.getDeltaTime());
+                if (blueOrangeBonesPhase.isFinished()) {
+                    blueOrangeBonesPhase.onExit();
+                    blueOrangeBonesEntered = false;
                     setConfigTurnPlayer();
                 }
             }
