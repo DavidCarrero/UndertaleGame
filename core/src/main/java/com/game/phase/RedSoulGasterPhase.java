@@ -21,7 +21,8 @@ import static com.game.BlackScreen.heart;
 public class RedSoulGasterPhase implements AttackPhase {
 
     private static final float DURATION = 7.0f;        // segundos generando blasters
-    private static final float SPAWN_INTERVAL = 0.5f;  // segundos entre cada blaster (consecutivos)
+    private static final float SPAWN_INTERVAL = 0.45f; // segundos entre cada tanda
+    private static final int BLASTERS_PER_SPAWN = 2;   // cuántos aparecen por tanda (más al tiempo)
 
     private final ArrayList<RotatingGasterBlaster> blasters = new ArrayList<>();
     private float elapsed = 0;
@@ -56,13 +57,16 @@ public class RedSoulGasterPhase implements AttackPhase {
             return;
         }
 
-        // 2) Durante DURATION s, generar blasters UNO TRAS OTRO apuntando al alma.
+        // 2) Durante DURATION s, generar blasters apuntando al alma. Cada tanda crea
+        // BLASTERS_PER_SPAWN (varios al tiempo), manteniendo la lógica de apuntar al alma.
         elapsed += delta;
         if (elapsed < DURATION) {
             waveTimer += delta;
             if (waveTimer >= SPAWN_INTERVAL) {
                 waveTimer = 0;
-                spawnOneAtSoul();
+                for (int i = 0; i < BLASTERS_PER_SPAWN; i++) {
+                    spawnOneAtSoul();
+                }
             }
         }
 
@@ -138,5 +142,13 @@ public class RedSoulGasterPhase implements AttackPhase {
             b.dispose();
         }
         blasters.clear();
+        // IMPORTANTE: la fase manipuló el ancho/posición del boxHeart directamente (sin tocar
+        // mode), dejándolo inconsistente. Restauramos a estado MÁXIMO (mode 0) y su posición de
+        // origen, para que al volver el turno del jugador el cuadro de FIGHT se dimensione bien.
+        // Sin esto, changeDimensionsMax() no expandía (creía estar ya en modo máximo) y el
+        // cuadro de ataque quedaba pequeño.
+        boxHeart.setWidth(boxHeart.MAX_WIDTH);
+        boxHeart.setX(com.game.BlackScreen.VH_WIDTH * 5);
+        boxHeart.mode = 0;
     }
 }
