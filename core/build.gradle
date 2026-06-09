@@ -7,25 +7,25 @@ dependencies {
   api "com.badlogicgames.gdx:gdx-bullet:$gdxVersion"
   api "com.badlogicgames.gdx:gdx:$gdxVersion"
   api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
-  implementation 'org.mongodb:mongodb-driver-sync:5.0.0'
-  implementation 'org.mongodb:mongodb-driver-reactivestreams:5.0.0'
-  implementation 'org.slf4j:slf4j-jdk14:2.0.9'
-  implementation 'ch.qos.logback:logback-classic:1.2.6'
+  implementation 'org.mongodb:mongodb-driver-sync:5.2.1'
+  implementation 'org.mongodb:mongodb-driver-reactivestreams:5.2.1'
+  implementation 'org.slf4j:slf4j-jdk14:2.0.16'
+  implementation 'ch.qos.logback:logback-classic:1.5.12'
 
   // --- Testing (FASE 0) ---
   // Unit: JUnit 5 + Mockito. El BOM alinea engine/api/params.
-  testImplementation platform('org.junit:junit-bom:5.10.2')
+  testImplementation platform('org.junit:junit-bom:5.11.4')
   testImplementation 'org.junit.jupiter:junit-jupiter'
-  testRuntimeOnly   'org.junit.platform:junit-platform-launcher'   // Gradle 8.6 lo exige explícito
-  testImplementation 'org.mockito:mockito-core:5.11.0'
-  testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
+  testRuntimeOnly   'org.junit.platform:junit-platform-launcher'   // Gradle lo exige explícito
+  testImplementation 'org.mockito:mockito-core:5.14.2'
+  testImplementation 'org.mockito:mockito-junit-jupiter:5.14.2'
 
   // Integración headless: HeadlessApplication + GL mockeado para probar Actors/Stage sin ventana.
   testImplementation "com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion"
   testRuntimeOnly   "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
 
   // Integración Mongo (Docker) via Testcontainers. Gate por @Tag("integration").
-  testImplementation platform('org.testcontainers:testcontainers-bom:1.19.7')
+  testImplementation platform('org.testcontainers:testcontainers-bom:1.20.4')
   testImplementation 'org.testcontainers:junit-jupiter'
   testImplementation 'org.testcontainers:mongodb'
 }

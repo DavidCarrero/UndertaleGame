@@ -22,11 +22,10 @@ else {
 }
 
 sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
-mainClassName = 'com.game.lwjgl3.Lwjgl3Launcher'
-application.setMainClass(mainClassName)
+// Gradle 9 eliminó la propiedad 'mainClassName'; se usa application.mainClass.
+ext.mainClassName = 'com.game.lwjgl3.Lwjgl3Launcher'
+application.mainClass = ext.mainClassName
 eclipse.project.name = appName + '-lwjgl3'
-java.sourceCompatibility = 21
-java.targetCompatibility = 21
 
 dependencies {
   implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
@@ -63,7 +62,7 @@ jar {
   }
 // setting the manifest makes the JAR runnable.
   manifest {
-    attributes 'Main-Class': project.mainClassName
+    attributes 'Main-Class': project.ext.mainClassName
   }
 // this last step may help on some OSes that need extra instruction to make runnable JARs.
   doLast {
